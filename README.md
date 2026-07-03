@@ -15,6 +15,20 @@
 > 사용할 수 있습니다. **임베딩 Provider는 `gemini`**, **챗 Provider는 `openrouter`** 권장.
 > (앱 소유자 키 비용 도용 방지를 위해 방문자가 자기 키를 입력하는 방식입니다.)
 
+### 🖼️ 데모 화면
+
+**② RAG 비교 탭** — 같은 질문에 대해 Naive·Advanced·Modular 3개 방식이 각각 답변하고
+근거 조문·토큰·시간을 함께 보여줍니다.
+
+![RAG 3방식 비교 화면](docs/images/demo-compare.png)
+
+<details>
+<summary>🏠 홈 화면 · 사용 설명서 펼쳐보기</summary>
+
+![홈 화면과 사용 설명서](docs/images/demo-home.png)
+
+</details>
+
 ---
 
 ![python](https://img.shields.io/badge/Python-3.11%2B-blue)
