@@ -75,7 +75,7 @@ def test_gemini_embed_returns_vectors() -> None:
 
 
 def test_gemini_retries_on_rate_limit(monkeypatch) -> None:
-    monkeypatch.setattr("embeddings.time.sleep", lambda s: None)  # 대기 스킵
+    monkeypatch.setattr("retry_util.time.sleep", lambda s: None)  # 대기 스킵
     client = _FakeGeminiClient(fail_times=2)  # 2회 429 후 성공
     provider = GeminiEmbeddingProvider(
         api_key="x", batch_size=10, client=client, max_retries=4
@@ -86,7 +86,7 @@ def test_gemini_retries_on_rate_limit(monkeypatch) -> None:
 
 
 def test_gemini_reraises_after_max_retries(monkeypatch) -> None:
-    monkeypatch.setattr("embeddings.time.sleep", lambda s: None)
+    monkeypatch.setattr("retry_util.time.sleep", lambda s: None)
     client = _FakeGeminiClient(fail_times=10)
     provider = GeminiEmbeddingProvider(api_key="x", client=client, max_retries=3)
     with pytest.raises(RuntimeError):

@@ -16,6 +16,8 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
+from retry_util import retry_call
+
 logger = logging.getLogger(__name__)
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
@@ -99,11 +101,14 @@ class OpenRouterProvider:
             messages.append({"role": "system", "content": system})
         messages.append({"role": "user", "content": user})
 
-        response = self._client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
+        response = retry_call(
+            lambda: self._client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            ),
+            what="OpenRouter 챗",
         )
         usage = response.usage
         return ChatResult(
@@ -155,8 +160,11 @@ class GeminiProvider:
             max_output_tokens=max_tokens,
             thinking_config=types.ThinkingConfig(thinking_budget=self._thinking_budget),
         )
-        response = self._client.models.generate_content(
-            model=self.model, contents=user, config=config
+        response = retry_call(
+            lambda: self._client.models.generate_content(
+                model=self.model, contents=user, config=config
+            ),
+            what="Gemini 챗",
         )
         usage = response.usage_metadata
         return ChatResult(

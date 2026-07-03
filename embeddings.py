@@ -9,16 +9,11 @@ OpenAI 대신 BGE-M3/KURE 등 로컬 임베딩 구현체로 교체할 수 있도
 from __future__ import annotations
 
 import logging
-import time
 from typing import Any, Protocol, runtime_checkable
 
+from retry_util import retry_call
+
 logger = logging.getLogger(__name__)
-
-
-def _is_rate_limit(exc: Exception) -> bool:
-    """예외가 레이트리밋/일시적 자원 소진인지 판별한다."""
-    text = str(exc)
-    return "429" in text or "RESOURCE_EXHAUSTED" in text or "rate limit" in text.lower()
 
 
 @runtime_checkable
@@ -156,17 +151,11 @@ class GeminiEmbeddingProvider:
         return vectors
 
     def _embed_batch(self, batch: list[str], config: Any) -> Any:
-        """배치 임베딩을 재시도와 함께 호출한다."""
-        delay = 2.0
-        for attempt in range(self._max_retries):
-            try:
-                return self._client.models.embed_content(
-                    model=self.model, contents=batch, config=config
-                )
-            except Exception as exc:  # noqa: BLE001 - 재시도 판단 후 재발생
-                if attempt == self._max_retries - 1 or not _is_rate_limit(exc):
-                    raise
-                logger.warning("임베딩 레이트리밋, %.0f초 후 재시도", delay)
-                time.sleep(delay)
-                delay *= 2
-        raise RuntimeError("임베딩 재시도 소진")  # 도달 불가(방어)
+        """배치 임베딩을 일시 오류(429/503 등) 재시도와 함께 호출한다."""
+        return retry_call(
+            lambda: self._client.models.embed_content(
+                model=self.model, contents=batch, config=config
+            ),
+            max_retries=self._max_retries,
+            what="Gemini 임베딩",
+        )

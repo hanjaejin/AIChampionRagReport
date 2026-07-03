@@ -10,17 +10,12 @@ API 키는 생성자 주입으로 받는다.
 from __future__ import annotations
 
 import logging
-import time
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
+from retry_util import retry_call
+
 logger = logging.getLogger(__name__)
-
-
-def _is_rate_limit(exc: Exception) -> bool:
-    """예외가 레이트리밋/일시적 자원 소진인지 판별한다."""
-    text = str(exc).lower()
-    return "429" in text or "rate limit" in text or "too many" in text
 
 
 @dataclass
@@ -104,17 +99,11 @@ class CohereReranker:
         return results
 
     def _rerank_with_retry(self, query: str, documents: list[str], top_n: int) -> Any:
-        """rerank 호출을 레이트리밋 재시도와 함께 수행한다."""
-        delay = 2.0
-        for attempt in range(self._max_retries):
-            try:
-                return self._client.rerank(
-                    model=self.model, query=query, documents=documents, top_n=top_n
-                )
-            except Exception as exc:  # noqa: BLE001 - 재시도 판단 후 재발생
-                if attempt == self._max_retries - 1 or not _is_rate_limit(exc):
-                    raise
-                logger.warning("rerank 레이트리밋, %.0f초 후 재시도", delay)
-                time.sleep(delay)
-                delay *= 2
-        raise RuntimeError("rerank 재시도 소진")  # 도달 불가(방어)
+        """rerank 호출을 일시 오류(429/503 등) 재시도와 함께 수행한다."""
+        return retry_call(
+            lambda: self._client.rerank(
+                model=self.model, query=query, documents=documents, top_n=top_n
+            ),
+            max_retries=self._max_retries,
+            what="Cohere rerank",
+        )
