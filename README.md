@@ -5,6 +5,17 @@
 사내 "AI 챔피언 고급과정" 실습 산출물이며, 대상 문서는 장/절/조 계층 + 별표(표)가
 혼재된 개인정보보호 지침입니다.
 
+## 📑 최종 레포트 (제출본)
+
+### 👉 **[최종 레포트 전체 보기 — docs/FINAL_REPORT.md](docs/FINAL_REPORT.md)**
+
+[![Final Report](https://img.shields.io/badge/📄%20최종%20레포트-FINAL__REPORT.md-2563eb?style=for-the-badge)](docs/FINAL_REPORT.md)
+
+> 배경·목표·설계·구현·실험·결과·인사이트·향후계획을 통합한 제출용 레포트입니다.
+> (성능 비교 상세는 [벤치마크 보고서](docs/benchmark_report.md) 참고)
+
+---
+
 ## 🔗 라이브 데모 (바로 체험)
 
 ### 👉 **https://aichampion-rag.streamlit.app/**
