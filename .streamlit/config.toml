@@ -1,0 +1,8 @@
+# Streamlit 앱 설정 (테마·서버). 비밀값은 여기가 아니라 secrets.toml/환경변수에.
+[theme]
+primaryColor = "#2563eb"
+base = "light"
+
+[server]
+# 업로드 파일 크기 제한(MB) — 규정 문서는 작으므로 낮게.
+maxUploadSize = 10

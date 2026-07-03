@@ -1,0 +1,19 @@
+# 규정 문서 RAG 비교 프로젝트 의존성 (Python 3.11+)
+
+# ── 핵심 ──────────────────────────────────────────
+openai>=1.40           # OpenRouter(챗) 호환 클라이언트 + (선택)OpenAI 임베딩
+supabase>=2.0          # Supabase(pgvector) 클라이언트
+python-dotenv>=1.0     # .env 로딩
+streamlit>=1.36        # 비교/업로드 웹 앱
+cohere>=5.0            # Cohere Rerank (Advanced/Modular RAG)
+
+# ── 임베딩·챗 Provider ────────────────────────────
+google-genai>=1.0      # Google Gemini (챗 + 임베딩 gemini-embedding-001)
+
+# ── 평가·유틸 ────────────────────────────────────
+numpy>=1.26            # 지표 계산(nDCG 등)
+pandas>=2.0            # 결과 표/집계
+rank-bm25>=0.2         # (대안) 인메모리 BM25 — 기본은 Postgres tsvector 사용
+
+# ── 개발/테스트 ──────────────────────────────────
+pytest>=8.0

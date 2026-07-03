@@ -1,0 +1,32 @@
+# ── 민감정보 (절대 커밋 금지) ──────────────────────────
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# ── Python ────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ── IDE / OS ──────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ── 로컬 도구 설정(머신 종속) ─────────────────────────
+.claude/settings.local.json
+
+# ── 사내 문서 원문 (공개 레포 업로드 금지 — 가공본만 커밋) ──
+data/private/
+개인정보지침.md

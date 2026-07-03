@@ -1,0 +1,28 @@
+{
+  "description": "코레일유통 개인정보보호 지침(제2024-23호) RAG 벤치마크 QA 세트. 골드 라벨은 조번호(article_no) 또는 별표(별표N). 청킹 방식이 바뀌어도 재사용 가능하도록 조번호 기준으로 라벨링.",
+  "doc_source": "개인정보지침.md",
+  "items": [
+    {"id": "q01", "question": "개인정보가 유출되면 언제까지 정보주체에게 통지해야 하나요?", "gold": ["제33조"], "category": "semantic", "style": "formal"},
+    {"id": "q02", "question": "직원 실수로 고객 정보가 새어나가면 회사가 뭘 해야 하나요?", "gold": ["제33조", "제35조"], "category": "semantic", "style": "colloquial"},
+    {"id": "q03", "question": "개인정보 유출 신고는 어디에 하나요?", "gold": ["제35조"], "category": "semantic", "style": "formal"},
+    {"id": "q04", "question": "개인정보 보호책임자는 누가 맡나요?", "gold": ["제26조"], "category": "semantic", "style": "colloquial"},
+    {"id": "q05", "question": "개인정보 보호책임자의 역할과 책임은 무엇인가요?", "gold": ["제29조"], "category": "semantic", "style": "formal"},
+    {"id": "q06", "question": "민감정보는 어떻게 처리해야 하나요?", "gold": ["제14조"], "category": "semantic", "style": "formal"},
+    {"id": "q07", "question": "주민등록번호 같은 고유식별정보를 처리하려면 동의를 어떻게 받나요?", "gold": ["제15조"], "category": "semantic", "style": "colloquial"},
+    {"id": "q08", "question": "만 14세 미만 아동의 개인정보는 누구 동의를 받아야 하나요?", "gold": ["제13조"], "category": "semantic", "style": "colloquial"},
+    {"id": "q09", "question": "개인정보 접근 권한은 어떻게 관리하나요?", "gold": ["제40조"], "category": "semantic", "style": "formal"},
+    {"id": "q10", "question": "접속기록은 얼마나 보관하고 점검하나요?", "gold": ["제42조"], "category": "semantic", "style": "formal"},
+    {"id": "q11", "question": "개인정보를 암호화해야 하는 경우는?", "gold": ["제48조"], "category": "semantic", "style": "colloquial"},
+    {"id": "q12", "question": "CCTV 안내판에는 무엇을 적어야 하나요?", "gold": ["제54조"], "category": "semantic", "style": "colloquial"},
+    {"id": "q13", "question": "영상정보는 얼마 동안 보관하나요?", "gold": ["제58조"], "category": "semantic", "style": "colloquial"},
+    {"id": "q14", "question": "개인정보 처리정지를 요구하면 어떻게 처리되나요?", "gold": ["제39조"], "category": "semantic", "style": "formal"},
+    {"id": "q15", "question": "내 개인정보를 정정하거나 삭제해달라고 하려면?", "gold": ["제38조"], "category": "semantic", "style": "colloquial"},
+    {"id": "q16", "question": "개인정보파일 보유기간은 어떻게 정하나요?", "gold": ["제73조"], "category": "semantic", "style": "formal"},
+    {"id": "q17", "question": "개인정보 침해사고가 발생하면 어떻게 대응하나요?", "gold": ["제75조"], "category": "semantic", "style": "formal"},
+    {"id": "q18", "question": "개인정보를 목적 외로 이용하거나 제3자에게 제공할 수 있는 경우는?", "gold": ["제8조"], "category": "semantic", "style": "formal"},
+    {"id": "q19", "question": "개인정보파일 보유기간 책정 기준표를 보여줘", "gold": ["별표1"], "category": "table", "style": "colloquial"},
+    {"id": "q20", "question": "개인정보파일 파기 관리대장 서식이 궁금해요", "gold": ["별표3"], "category": "table", "style": "colloquial"},
+    {"id": "q21", "question": "제36조 내용 알려줘", "gold": ["제36조"], "category": "direct", "style": "direct"},
+    {"id": "q22", "question": "제47조가 무슨 내용이야?", "gold": ["제47조"], "category": "direct", "style": "direct"}
+  ]
+}
