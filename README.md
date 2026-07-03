@@ -5,12 +5,23 @@
 사내 "AI 챔피언 고급과정" 실습 산출물이며, 대상 문서는 장/절/조 계층 + 별표(표)가
 혼재된 개인정보보호 지침입니다.
 
+## 🔗 라이브 데모 (바로 체험)
+
+### 👉 **https://aichampion-rag.streamlit.app/**
+
+[![Live Demo](https://img.shields.io/badge/▶%20Live%20Demo-aichampion--rag.streamlit.app-ff4b4b?style=for-the-badge&logo=streamlit&logoColor=white)](https://aichampion-rag.streamlit.app/)
+
+> 접속 후 왼쪽 사이드바에 **본인의 API 키**(Gemini·OpenRouter·Cohere)를 입력하면 바로
+> 사용할 수 있습니다. **임베딩 Provider는 `gemini`**, **챗 Provider는 `openrouter`** 권장.
+> (앱 소유자 키 비용 도용 방지를 위해 방문자가 자기 키를 입력하는 방식입니다.)
+
+---
+
 ![python](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![streamlit](https://img.shields.io/badge/UI-Streamlit-red)
 ![pgvector](https://img.shields.io/badge/VectorDB-Supabase%20pgvector-3ecf8e)
-![tests](https://img.shields.io/badge/tests-81%20passing-brightgreen)
-
-> ⚠️ 데모는 방문자가 **자신의 API 키를 입력**해 사용합니다(앱 소유자 키 비용 도용 방지).
+![tests](https://img.shields.io/badge/tests-85%20passing-brightgreen)
+[![demo](https://img.shields.io/badge/demo-live-brightgreen)](https://aichampion-rag.streamlit.app/)
 
 ## ✨ 주요 기능
 
@@ -179,6 +190,9 @@
 - 앱/배포: **Streamlit** + **Streamlit Community Cloud**
 
 ## 🚀 빠른 시작
+
+> 설치 없이 바로 써보려면 **[라이브 데모](https://aichampion-rag.streamlit.app/)** 를 이용하세요.
+> 아래는 로컬 실행 방법입니다.
 
 ```bash
 # 1) 의존성 설치

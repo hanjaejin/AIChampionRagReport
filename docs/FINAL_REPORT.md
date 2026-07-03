@@ -2,6 +2,8 @@
 
 > **AI 챔피언 고급과정** 실습 제출용 · 작성: 코레일유통 IT · 2026-07-03
 > 대상 문서: 코레일유통 개인정보보호 지침(제2024-23호)
+> **🔗 라이브 데모: https://aichampion-rag.streamlit.app/**
+> **💻 소스 코드: https://github.com/hanjaejin/AIChampionRagReport**
 
 ---
 

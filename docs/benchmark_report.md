@@ -1,5 +1,7 @@
 # 벤치마크 비교 보고서 — Naive vs Advanced vs Modular RAG
 
+> **🔗 라이브 데모: https://aichampion-rag.streamlit.app/** (③ 평가 대시보드 탭에서 직접 실행 가능)
+>
 > 실행일: 2026-07-03 · 대상: 코레일유통 개인정보보호 지침(제2024-23호) · 22문항 × 3파이프라인
 > 임베딩=`gemini-embedding-001` · 챗=`openai/gpt-4o-mini`(OpenRouter) · rerank=`rerank-multilingual-v3.0`(Cohere)
 > 심판=`openai/gpt-4o`(생성과 분리) · 골드 라벨=조번호/별표
