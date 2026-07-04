@@ -10,7 +10,7 @@
 
 ## 0. 이 시스템이 하는 일 (1분 이해)
 
-규정 문서(예: 개인정보보호 지침)를 넣어두면, 질문에 대해 **관련 조문을 찾아 근거와 함께
+규정 문서(예: 국가계약법령 — 법률·시행령·시행규칙)를 넣어두면, 질문에 대해 **관련 조문을 찾아 근거와 함께
 답변**합니다. 같은 질문을 3가지 방식(Naive / Advanced / Modular)으로 처리해 **어느 방식이
 더 정확하고 저렴한지 비교**할 수 있습니다.
 
@@ -71,8 +71,9 @@ cp .env.example .env
 
 ### 방법 B — 명령어로
 ```bash
-python load_to_supabase.py                 # 기본: 개인정보지침.md
-python load_to_supabase.py 다른규정.md      # 다른 문서
+python load_to_supabase.py                 # 기본: 국가계약법(법률)
+python load_to_supabase.py 국가를당사자로하는계약에관한법률시행령_대통령령_제36338호_20260603.md
+python load_to_supabase.py 국가를당사자로하는계약에관한법률시행규칙_재정경제부령_제00001호_20260102.md
 python load_to_supabase.py --dry-run       # 청킹만 미리보기(적재 안 함)
 ```
 

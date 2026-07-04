@@ -11,25 +11,38 @@ import math
 from typing import Any, Iterable, Sequence
 
 
-def context_label(chunk: dict[str, Any]) -> str:
+def context_label(
+    chunk: dict[str, Any], doc_key_map: dict[str, str] | None = None
+) -> str:
     """청크의 평가 라벨을 만든다(조번호 우선, 없으면 별표번호).
+
+    여러 문서가 공존하면 조번호가 문서 간에 겹칠 수 있다(예: 법률/시행령 모두
+    "제1조"). doc_key_map(doc_id → 문서 단축키)이 주어지고 청크의 doc_id가
+    맵에 있으면 "문서키:조번호" 형식으로 접두해 문서 간 오탐(false hit)을 막는다.
 
     Args:
         chunk: 검색 결과 청크 dict.
+        doc_key_map: doc_id → 문서 단축키 매핑(선택, 다중 문서 평가용).
 
     Returns:
-        '제35조' 또는 '별표3' 형식 라벨. 둘 다 없으면 빈 문자열.
+        '제35조', '법률:제1조' 또는 '별표3' 형식 라벨. 둘 다 없으면 빈 문자열.
     """
     if chunk.get("article_no"):
-        return str(chunk["article_no"])
-    if chunk.get("annex_no") is not None:
-        return f"별표{chunk['annex_no']}"
-    return ""
+        base = str(chunk["article_no"])
+    elif chunk.get("annex_no") is not None:
+        base = f"별표{chunk['annex_no']}"
+    else:
+        return ""
+    if doc_key_map and chunk.get("doc_id") in doc_key_map:
+        return f"{doc_key_map[chunk['doc_id']]}:{base}"
+    return base
 
 
-def context_labels(chunks: Sequence[dict[str, Any]]) -> list[str]:
+def context_labels(
+    chunks: Sequence[dict[str, Any]], doc_key_map: dict[str, str] | None = None
+) -> list[str]:
     """청크 목록을 라벨 목록으로 변환한다(순서 보존)."""
-    return [context_label(c) for c in chunks]
+    return [context_label(c, doc_key_map) for c in chunks]
 
 
 def dedupe_labels(labels: Sequence[str]) -> list[str]:
@@ -108,7 +121,10 @@ def ndcg_at_k(retrieved: Sequence[str], gold: set[str], k: int) -> float:
 
 
 def evaluate_retrieval(
-    contexts: Sequence[dict[str, Any]], gold: set[str], k: int = 5
+    contexts: Sequence[dict[str, Any]],
+    gold: set[str],
+    k: int = 5,
+    doc_key_map: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """단일 질의의 검색 지표 묶음을 계산한다.
 
@@ -116,12 +132,13 @@ def evaluate_retrieval(
         contexts: 파이프라인이 반환한 최종 문맥 청크(순위 순).
         gold: 정답 라벨 집합.
         k: 상위 컷.
+        doc_key_map: doc_id → 문서 단축키 매핑(다중 문서 평가 시 조번호 충돌 방지).
 
     Returns:
         recall/mrr/ndcg/hit 를 담은 dict.
     """
     # 조번호 단위 평가: 분할 청크로 인한 라벨 중복 제거(nDCG ≤ 1.0 보장)
-    labels = dedupe_labels(context_labels(contexts))
+    labels = dedupe_labels(context_labels(contexts, doc_key_map))
     return {
         "recall": recall_at_k(labels, gold, k),
         "mrr": reciprocal_rank(labels, gold),

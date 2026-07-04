@@ -16,6 +16,25 @@ def test_context_label_annex() -> None:
     assert metrics.context_label({"annex_no": 3}) == "별표3"
 
 
+def test_context_label_doc_key_map_prefixes_label() -> None:
+    """다중 문서 공존 시 조번호 충돌 방지 — doc_id를 문서 키로 접두."""
+    chunk = {"article_no": "제1조", "doc_id": "uuid-a"}
+    label = metrics.context_label(chunk, doc_key_map={"uuid-a": "법률", "uuid-b": "시행령"})
+    assert label == "법률:제1조"
+
+
+def test_context_label_doc_key_map_unknown_doc_id_falls_back() -> None:
+    """doc_key_map에 없는 doc_id는 접두 없이 원래 라벨을 반환(하위호환)."""
+    chunk = {"article_no": "제1조", "doc_id": "uuid-z"}
+    label = metrics.context_label(chunk, doc_key_map={"uuid-a": "법률"})
+    assert label == "제1조"
+
+
+def test_context_label_no_doc_key_map_unchanged() -> None:
+    """doc_key_map 미지정 시 기존(단일 문서) 동작과 동일."""
+    assert metrics.context_label({"article_no": "제1조", "doc_id": "uuid-a"}) == "제1조"
+
+
 def test_recall_at_k_hit() -> None:
     retrieved = ["제33조", "제35조", "제1조"]
     assert metrics.recall_at_k(retrieved, {"제35조"}, k=3) == 1.0
@@ -68,6 +87,20 @@ def test_evaluate_retrieval_bundles_metrics() -> None:
 
 def test_dedupe_labels_preserves_order() -> None:
     assert metrics.dedupe_labels(["제8조", "제8조", "제1조", ""]) == ["제8조", "제1조"]
+
+
+def test_evaluate_retrieval_disambiguates_cross_document_collision() -> None:
+    """같은 조번호가 다른 문서에 존재해도 doc_key_map으로 정오답이 뒤섞이지 않는다."""
+    doc_key_map = {"uuid-law": "법률", "uuid-decree": "시행령"}
+    # 오답 문서(시행령)의 제1조가 1위, 정답 문서(법률)의 제1조는 없음 → 히트 없어야 함
+    contexts = [{"article_no": "제1조", "doc_id": "uuid-decree"}]
+    result = metrics.evaluate_retrieval(contexts, {"법률:제1조"}, k=5, doc_key_map=doc_key_map)
+    assert result["hit"] is False
+    assert result["recall"] == 0.0
+    # 정답 문서(법률)의 제1조가 있으면 히트
+    contexts_ok = [{"article_no": "제1조", "doc_id": "uuid-law"}]
+    result_ok = metrics.evaluate_retrieval(contexts_ok, {"법률:제1조"}, k=5, doc_key_map=doc_key_map)
+    assert result_ok["hit"] is True
 
 
 def test_ndcg_not_exceed_one_with_split_article() -> None:

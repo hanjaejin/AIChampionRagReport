@@ -24,13 +24,21 @@ from reranker import Reranker
 logger = logging.getLogger(__name__)
 
 
-def _candidate_label(chunk: dict) -> str:
-    """오류 분석용 후보 라벨(조번호 우선, 없으면 별표번호)."""
+def _candidate_label(chunk: dict, doc_key_map: dict[str, str] | None = None) -> str:
+    """오류 분석용 후보 라벨(조번호 우선, 없으면 별표번호).
+
+    다중 문서 평가 시 doc_key_map(doc_id → 문서 단축키)이 주어지면 조번호
+    앞에 문서 키를 붙여("법률:제1조") 문서 간 조번호 충돌을 방지한다.
+    """
     if chunk.get("article_no"):
-        return str(chunk["article_no"])
-    if chunk.get("annex_no") is not None:
-        return f"별표{chunk['annex_no']}"
-    return ""
+        base = str(chunk["article_no"])
+    elif chunk.get("annex_no") is not None:
+        base = f"별표{chunk['annex_no']}"
+    else:
+        return ""
+    if doc_key_map and chunk.get("doc_id") in doc_key_map:
+        return f"{doc_key_map[chunk['doc_id']]}:{base}"
+    return base
 
 
 class _Embedder(Protocol):
@@ -64,6 +72,7 @@ class AdvancedRAG:
         top_k: rerank 후 최종 문맥 개수(기본 5).
         min_rerank_score: 이 점수 미만 문맥 제거(0.0이면 필터 없음).
         doc_id: 특정 문서로 검색 제한.
+        doc_key_map: doc_id → 문서 단축키 매핑(다중 문서 평가 시 candidate_labels 충돌 방지, 선택).
     """
 
     def __init__(
@@ -78,6 +87,7 @@ class AdvancedRAG:
         top_k: int = 5,
         min_rerank_score: float = 0.0,
         doc_id: str | None = None,
+        doc_key_map: dict[str, str] | None = None,
     ) -> None:
         self._embedder = embedder
         self._store = store
@@ -88,6 +98,7 @@ class AdvancedRAG:
         self._top_k = top_k
         self._min_score = min_rerank_score
         self._doc_id = doc_id
+        self._doc_key_map = doc_key_map
 
     def answer(self, question: str) -> RagAnswer:
         """쿼리 재작성→넓은 검색→rerank→필터→생성으로 답변한다.
@@ -139,7 +150,7 @@ class AdvancedRAG:
                 "retrieved": len(candidates),
                 "after_rerank": len(reranked),
                 "after_filter": len(contexts),
-                "candidate_labels": [_candidate_label(c) for c in candidates],
+                "candidate_labels": [_candidate_label(c, self._doc_key_map) for c in candidates],
                 "rewrite_tokens": [rewrite.input_tokens, rewrite.output_tokens],
                 "generation_tokens": [gen.input_tokens, gen.output_tokens],
             },

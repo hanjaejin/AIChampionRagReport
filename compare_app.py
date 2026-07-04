@@ -15,7 +15,7 @@ import streamlit as st
 
 from chat_providers import OpenRouterProvider
 from config import MissingSecretError, load_settings
-from evaluation.benchmark import load_benchmark
+from evaluation.benchmark import build_doc_key_map, load_benchmark
 from evaluation.judge import LLMJudge
 from evaluation.runner import run_benchmark, summarize
 from ingest import ingest_markdown
@@ -74,8 +74,8 @@ def _get_settings(overrides: dict):
 def _tab_upload(settings, cfg) -> None:
     st.header("① 문서 업로드")
     st.write(
-        "`개인정보지침.md`와 유사한 장/절/조 + 별표(표) 구조의 마크다운 규정 문서를 "
-        "업로드하면, 청킹 미리보기 후 임베딩·Supabase 적재를 수행합니다."
+        "국가계약법령(법률·시행령·시행규칙)과 유사한 장/절/조 + 별표(표) 구조의 "
+        "마크다운 규정 문서를 업로드하면, 청킹 미리보기 후 임베딩·Supabase 적재를 수행합니다."
     )
 
     # 공개 데모 보호: 관리자 비밀번호(secrets의 UPLOAD_PASSWORD가 설정된 경우에만 요구)
@@ -173,7 +173,7 @@ def _tab_compare(settings, cfg) -> None:
     st.header("② RAG 비교")
     st.write("질문을 입력하면 Naive / Advanced / Modular 3개 파이프라인 결과를 나란히 비교합니다.")
 
-    question = st.text_input("질문", value="개인정보가 유출되면 어떻게 신고하나요?")
+    question = st.text_input("질문", value="수의계약을 할 수 있는 경우는 언제인가요?")
     if not st.button("비교 실행", type="primary"):
         return
     try:
@@ -216,7 +216,7 @@ def _tab_compare(settings, cfg) -> None:
 def _tab_dashboard(settings, cfg) -> None:
     st.header("③ 평가 대시보드")
     items = load_benchmark()
-    st.write(f"벤치마크 QA {len(items)}문항 · 골드 라벨은 조번호/별표 기준")
+    st.write(f"벤치마크 QA {len(items)}문항 · 골드 라벨은 '문서단축키:조번호' 기준(예: 법률:제1조)")
 
     col1, col2 = st.columns(2)
     subset_n = col1.slider("실행 문항 수", 1, len(items), min(5, len(items)))
@@ -238,7 +238,8 @@ def _tab_dashboard(settings, cfg) -> None:
         st.error(str(exc))
         return
 
-    pipelines = build_pipelines(components)
+    doc_key_map = build_doc_key_map(components.store.list_documents())
+    pipelines = build_pipelines(components, doc_key_map=doc_key_map)
     judge = None
     if use_judge:
         # 자기채점 방지: 생성과 다른 모델을 심판으로
@@ -253,6 +254,7 @@ def _tab_dashboard(settings, cfg) -> None:
         pipelines, items[:subset_n], judge=judge,
         rerank_model=components.rerank_model,
         progress=lambda f, m: bar.progress(f, text=m),
+        doc_key_map=doc_key_map,
     )
     summary = summarize(results)
 
@@ -315,7 +317,7 @@ def _usage_guide() -> None:
     with st.expander("📖 화면 사용 설명서 — 처음이라면 먼저 읽어주세요", expanded=True):
         st.markdown(
             """
-**이 앱은?** 규정 문서(개인정보보호 지침)에 대한 질문을 **3가지 RAG 방식**
+**이 앱은?** 국가계약법령(법률·시행령·시행규칙)에 대한 질문을 **3가지 RAG 방식**
 (Naive·Advanced·Modular)으로 답하고, 정확도·속도·비용을 비교합니다.
 
 #### 1단계 · 왼쪽 사이드바에서 API 키 입력
@@ -335,8 +337,8 @@ def _usage_guide() -> None:
 | **③ 평가 대시보드** | 여러 질문으로 지표(정확도·비용) 자동 측정 |
 | **① 문서 업로드** | 새 규정 문서(.md)를 벡터 DB에 적재 |
 
-**예시 질문:** `개인정보가 유출되면 어떻게 신고하나요?` · `제36조 내용 알려줘` ·
-`개인정보파일 보유기간 기준표 보여줘`
+**예시 질문:** `수의계약을 할 수 있는 경우는 언제인가요?` · `제33조 내용 알려줘` ·
+`입찰보증금은 언제 면제되나요?`
 
 > 💡 **오류가 나면?** 대부분 특정 서비스의 일시 과부하(429/503)입니다. 잠시 후 다시
 > 실행하거나, 챗 Provider를 OpenRouter로 바꿔보세요. 키 미입력 시 안내 메시지가 뜹니다.
@@ -349,7 +351,7 @@ def _usage_guide() -> None:
 # ──────────────────────────────────────────────────────────────
 def main() -> None:
     st.title("📚 규정 문서 RAG 아키텍처 비교")
-    st.caption("Naive · Advanced · Modular RAG — 코레일유통 개인정보보호 지침 대상")
+    st.caption("Naive · Advanced · Modular RAG — 국가계약법령(법률·시행령·시행규칙) 대상")
 
     _usage_guide()
 

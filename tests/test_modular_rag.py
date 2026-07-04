@@ -143,6 +143,22 @@ def test_semantic_route_uses_hybrid() -> None:
     assert result.trace["route"] == "semantic"
 
 
+def test_candidate_labels_prefixed_with_doc_key_map() -> None:
+    """다중 문서 평가 시 candidate_labels가 문서 단축키로 접두된다(SEMANTIC 경로)."""
+    store = RecordingStore()
+    result = _make(store, doc_key_map={"d1": "법률"}).answer("개인정보 보호책임자의 역할은?")
+    assert all(label.startswith("법률:") for label in result.trace["candidate_labels"])
+
+
+def test_direct_route_candidate_labels_prefixed_with_doc_key_map() -> None:
+    """DIRECT 경로(get_by_article)도 doc_key_map으로 candidate_labels가 접두된다."""
+    hits = [{"content": "제36조 원문", "article_no": "제36조", "chunk_index": 5,
+             "doc_id": "d1", "content_type": "article"}]
+    store = RecordingStore(article_hits=hits)
+    result = _make(store, doc_key_map={"d1": "법률"}).answer("제36조 내용 알려줘")
+    assert result.trace["candidate_labels"] == ["법률:제36조"]
+
+
 def test_adjacent_expansion_triggers_on_reference_phrase() -> None:
     store = RecordingStore()
     store._semantic[0]["content"] = "전조의 규정에 따라 처리한다."  # 참조 표현

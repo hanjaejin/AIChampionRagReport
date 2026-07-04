@@ -24,7 +24,7 @@ class FakeStore:
         # 의도적으로 관련 낮은 것이 앞에 오도록 구성(rerank가 재정렬해야 함)
         self.candidates = [
             {"content": f"조문{i} 내용", "article_no": f"제{i}조",
-             "article_title": f"제목{i}", "content_type": "article"}
+             "article_title": f"제목{i}", "content_type": "article", "doc_id": "doc-x"}
             for i in range(20)
         ]
 
@@ -96,6 +96,13 @@ def test_retrieves_wide_then_reranks_narrow() -> None:
     assert len(result.contexts) == 5             # rerank로 좁힘
     assert reranker.last_docs is not None
     assert len(reranker.last_docs) == 20         # 20개를 rerank에 넘김
+
+
+def test_candidate_labels_prefixed_with_doc_key_map() -> None:
+    """다중 문서 평가 시 candidate_labels가 문서 단축키로 접두된다."""
+    rag, _, _, _ = _make(doc_key_map={"doc-x": "법률"})
+    result = rag.answer("질문")
+    assert all(label.startswith("법률:") for label in result.trace["candidate_labels"])
 
 
 def test_rerank_reorders_context() -> None:

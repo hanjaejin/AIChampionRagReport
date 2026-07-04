@@ -2,9 +2,12 @@
 """문서를 Supabase에 적재하는 CLI 진입점.
 
 사용법:
-    python load_to_supabase.py                  # 기본: 개인정보지침.md
+    python load_to_supabase.py                  # 기본: 국가계약법(법률)
     python load_to_supabase.py 다른규정.md
     python load_to_supabase.py --dry-run        # 청킹만, 임베딩/적재 없이 미리보기
+
+여러 문서를 적재하려면(예: 법률·시행령·시행규칙) 파일마다 한 번씩 실행한다.
+문서마다 별도 rag_documents 행으로 관리되며 같은 파일명 재적재 시 교체(replace)된다.
 
 키/접속정보는 .env(또는 환경변수)에서 로드하며 하드코딩하지 않는다.
 실제 적재 로직은 ingest.ingest_markdown 을 재사용한다(업로드 탭과 동일 파이프라인).
@@ -25,7 +28,7 @@ from vector_store import SupabaseVectorStore
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_DOC = "개인정보지침.md"
+DEFAULT_DOC = "국가를당사자로하는계약에관한법률_제21418호_20260611.md"
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:

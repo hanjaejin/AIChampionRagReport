@@ -153,7 +153,10 @@ def build_components(
 
 
 def build_pipelines(
-    components: Components, doc_id: str | None = None, top_k: int = 5
+    components: Components,
+    doc_id: str | None = None,
+    top_k: int = 5,
+    doc_key_map: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """공유 구성 요소로 3개 파이프라인을 조립한다.
 
@@ -161,6 +164,8 @@ def build_pipelines(
         components: 공유 구성 요소.
         doc_id: 특정 문서로 검색 제한.
         top_k: 최종 문맥 개수(공정 비교 동일값).
+        doc_key_map: doc_id → 문서 단축키 매핑. 여러 문서가 공존할 때
+            오류분석용 candidate_labels의 조번호 충돌을 막는다(선택, 벤치마크용).
 
     Returns:
         {'naive': ..., 'advanced': ..., 'modular': ...}
@@ -172,10 +177,11 @@ def build_pipelines(
         ),
         "advanced": AdvancedRAG(
             embedder=c.embedder, store=c.store, chat=c.chat, reranker=c.reranker,
-            top_k=top_k, doc_id=doc_id,
+            top_k=top_k, doc_id=doc_id, doc_key_map=doc_key_map,
         ),
         "modular": ModularRAG(
             embedder=c.embedder, store=c.store, chat=c.chat, reranker=c.reranker,
             router=QueryRouter(c.chat), top_k=top_k, doc_id=doc_id,
+            doc_key_map=doc_key_map,
         ),
     }

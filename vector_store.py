@@ -94,6 +94,19 @@ class SupabaseVectorStore:
         )
         return res.data[0] if res.data else None
 
+    def list_documents(self) -> list[dict]:
+        """등록된 모든 문서 행(doc_id/doc_title/source_filename 등)을 반환한다.
+
+        다중 문서 공존 시 조번호 충돌을 막기 위한 doc_id → 문서 단축키
+        매핑을 만드는 용도(평가/벤치마크 전용)로 쓴다.
+        """
+        res = (
+            self._client.table(self.DOC_TABLE)
+            .select("doc_id,doc_title,source_filename,chunk_count")
+            .execute()
+        )
+        return res.data or []
+
     def replace_document(
         self,
         *,

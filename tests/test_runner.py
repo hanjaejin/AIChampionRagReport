@@ -77,6 +77,17 @@ def test_run_benchmark_and_summarize() -> None:
     assert summary["naive"]["error_dist"]["OK"] == 1
 
 
+def test_evaluate_answer_doc_key_map_disambiguates_collision() -> None:
+    """다중 문서 공존 시 doc_key_map으로 다른 문서의 동일 조번호를 오답 처리한다."""
+    item = QAItem(id="q01", question="?", gold={"법률:제1조"}, category="semantic")
+    ans = _answer(articles=("제1조",))
+    ans.contexts[0]["doc_id"] = "uuid-decree"  # 정답은 법률인데 시행령 청크가 옴
+    doc_key_map = {"uuid-law": "법률", "uuid-decree": "시행령"}
+    r = evaluate_answer(item, ans, doc_key_map=doc_key_map)
+    assert r.hit is False
+    assert r.recall == 0.0
+
+
 def test_run_benchmark_isolates_failures() -> None:
     class Boom:
         def answer(self, q): raise RuntimeError("boom")

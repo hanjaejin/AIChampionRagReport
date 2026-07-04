@@ -20,7 +20,7 @@ from datetime import date
 from pathlib import Path
 
 from config import load_settings
-from evaluation.benchmark import load_benchmark
+from evaluation.benchmark import build_doc_key_map, load_benchmark
 from evaluation.judge import LLMJudge
 from evaluation.runner import run_benchmark, summarize
 from pipeline_factory import build_chat, build_components, build_pipelines
@@ -47,7 +47,8 @@ def main(argv: list[str] | None = None) -> int:
     components = build_components(
         settings, provider=args.chat, embedding_provider="gemini"
     )
-    pipelines = build_pipelines(components)
+    doc_key_map = build_doc_key_map(components.store.list_documents())
+    pipelines = build_pipelines(components, doc_key_map=doc_key_map)
 
     judge = None
     if args.judge:
@@ -67,6 +68,7 @@ def main(argv: list[str] | None = None) -> int:
     results = run_benchmark(
         pipelines, items, judge=judge,
         rerank_model=components.rerank_model, progress=_progress,
+        doc_key_map=doc_key_map,
     )
     print()
     summary = summarize(results)

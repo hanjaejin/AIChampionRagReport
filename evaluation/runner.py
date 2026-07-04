@@ -67,6 +67,7 @@ def evaluate_answer(
     judge: Any | None = None,
     embedding_model: str = "text-embedding-3-small",
     rerank_model: str | None = None,
+    doc_key_map: dict[str, str] | None = None,
 ) -> QAResult:
     """파이프라인이 반환한 RagAnswer를 채점해 QAResult로 만든다.
 
@@ -77,12 +78,13 @@ def evaluate_answer(
         judge: LLMJudge(있으면 faithfulness/correctness 계산 및 E3 판정).
         embedding_model: 임베딩 모델(비용 계산).
         rerank_model: rerank 모델(비용 계산, 사용 시).
+        doc_key_map: doc_id → 문서 단축키 매핑(다중 문서 평가 시 조번호 충돌 방지).
 
     Returns:
         QAResult.
     """
-    retrieval = metrics.evaluate_retrieval(answer.contexts, item.gold, k=k)
-    labels = metrics.context_labels(answer.contexts)
+    retrieval = metrics.evaluate_retrieval(answer.contexts, item.gold, k=k, doc_key_map=doc_key_map)
+    labels = metrics.context_labels(answer.contexts, doc_key_map=doc_key_map)
     candidate_labels = answer.trace.get("candidate_labels", labels)
 
     faith = correct = None
@@ -143,6 +145,7 @@ def run_benchmark(
     embedding_model: str = "text-embedding-3-small",
     rerank_model: str | None = None,
     progress: ProgressCallback | None = None,
+    doc_key_map: dict[str, str] | None = None,
 ) -> list[QAResult]:
     """여러 파이프라인을 QA 세트 전체에 실행한다.
 
@@ -154,6 +157,7 @@ def run_benchmark(
         embedding_model: 임베딩 모델(비용).
         rerank_model: rerank 모델(비용).
         progress: 진행률 콜백.
+        doc_key_map: doc_id → 문서 단축키 매핑(다중 문서 평가 시 조번호 충돌 방지).
 
     Returns:
         모든 (질의×파이프라인) QAResult 목록.
@@ -171,6 +175,7 @@ def run_benchmark(
                     evaluate_answer(
                         item, answer, k=k, judge=judge,
                         embedding_model=embedding_model, rerank_model=rerank_model,
+                        doc_key_map=doc_key_map,
                     )
                 )
             except Exception as exc:  # noqa: BLE001 - 한 항목 실패가 전체를 막지 않도록

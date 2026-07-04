@@ -32,6 +32,33 @@ class QAItem:
     style: str = ""
 
 
+def build_doc_key_map(documents: list[dict]) -> dict[str, str]:
+    """rag_documents 행 목록에서 doc_id → 문서 단축키 매핑을 만든다.
+
+    여러 문서가 공존하면 조번호가 문서 간에 겹칠 수 있어(예: 법률/시행령
+    모두 "제1조") 평가 시 문서 단위로 구분해야 한다. 파일명에 "시행규칙"/
+    "시행령"이 포함되면 해당 종류로, 그 외에는 "법률"로 분류한다
+    (국가계약법령 3종 기준 — 다른 문서 조합을 쓰면 이 규칙을 조정할 것).
+
+    Args:
+        documents: SupabaseVectorStore.list_documents() 반환값.
+
+    Returns:
+        doc_id → "법률"/"시행령"/"시행규칙" 매핑.
+    """
+    key_map: dict[str, str] = {}
+    for doc in documents:
+        filename = doc.get("source_filename") or ""
+        if "시행규칙" in filename:
+            key = "시행규칙"
+        elif "시행령" in filename:
+            key = "시행령"
+        else:
+            key = "법률"
+        key_map[doc["doc_id"]] = key
+    return key_map
+
+
 def load_benchmark(path: str | Path | None = None) -> list[QAItem]:
     """QA 세트 JSON을 로드해 QAItem 목록으로 반환한다.
 

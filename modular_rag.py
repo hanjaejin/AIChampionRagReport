@@ -29,13 +29,21 @@ logger = logging.getLogger(__name__)
 _REFERENCE_RE = re.compile(r"전조|전항|다음\s*각\s*[호항]|제\d+항에\s*따라|제\d+호에\s*따라")
 
 
-def _candidate_label(chunk: dict) -> str:
-    """오류 분석용 후보 라벨(조번호 우선, 없으면 별표번호)."""
+def _candidate_label(chunk: dict, doc_key_map: dict[str, str] | None = None) -> str:
+    """오류 분석용 후보 라벨(조번호 우선, 없으면 별표번호).
+
+    다중 문서 평가 시 doc_key_map(doc_id → 문서 단축키)이 주어지면 조번호
+    앞에 문서 키를 붙여("법률:제1조") 문서 간 조번호 충돌을 방지한다.
+    """
     if chunk.get("article_no"):
-        return str(chunk["article_no"])
-    if chunk.get("annex_no") is not None:
-        return f"별표{chunk['annex_no']}"
-    return ""
+        base = str(chunk["article_no"])
+    elif chunk.get("annex_no") is not None:
+        base = f"별표{chunk['annex_no']}"
+    else:
+        return ""
+    if doc_key_map and chunk.get("doc_id") in doc_key_map:
+        return f"{doc_key_map[chunk['doc_id']]}:{base}"
+    return base
 
 
 class _Embedder(Protocol):
@@ -71,6 +79,7 @@ class ModularRAG:
         top_k: 최종 문맥 개수(공정 비교 기본 5).
         expand_adjacent: 조건부 인접 청크 확장 사용 여부.
         doc_id: 특정 문서로 검색 제한.
+        doc_key_map: doc_id → 문서 단축키 매핑(다중 문서 평가 시 candidate_labels 충돌 방지, 선택).
     """
 
     def __init__(
@@ -85,6 +94,7 @@ class ModularRAG:
         top_k: int = 5,
         expand_adjacent: bool = True,
         doc_id: str | None = None,
+        doc_key_map: dict[str, str] | None = None,
     ) -> None:
         self._embedder = embedder
         self._store = store
@@ -95,6 +105,7 @@ class ModularRAG:
         self._top_k = top_k
         self._expand = expand_adjacent
         self._doc_id = doc_id
+        self._doc_key_map = doc_key_map
 
     def answer(self, question: str) -> RagAnswer:
         """라우팅→검색→(재정렬)→(인접 확장)→생성으로 답변한다.
@@ -145,7 +156,7 @@ class ModularRAG:
         if decision.route == Route.DIRECT:
             hits = self._direct_lookup(decision)
             if hits:
-                trace["candidate_labels"] = [_candidate_label(c) for c in hits]
+                trace["candidate_labels"] = [_candidate_label(c, self._doc_key_map) for c in hits]
                 return hits
             trace["direct_fallback"] = True  # 직접 조회 실패 → 하이브리드 폴백
 
@@ -162,7 +173,7 @@ class ModularRAG:
                 query_text=question, query_embedding=query_vec,
                 match_count=self._retrieve_k, doc_id=self._doc_id,
             )
-        trace["candidate_labels"] = [_candidate_label(c) for c in candidates]
+        trace["candidate_labels"] = [_candidate_label(c, self._doc_key_map) for c in candidates]
         return self._rerank(question, candidates)
 
     def _direct_lookup(self, decision: Any) -> list[dict]:
